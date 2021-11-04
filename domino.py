@@ -56,24 +56,38 @@ class Domino:
 
     def turn(self):
         if self.active_player == 'human':
-            move = self.validate_move()
-            self.make_move(move, self.human)
-            self.active_player = 'computer'
+            while True:
+                move = self.validate_move()
+                if self.is_legal(move, self.human):
+                    self.make_move(move, self.human)
+                    self.active_player = 'computer'
+                    break
+                else:
+                    print('Illegal move. Please try again.')
 
         elif self.active_player == 'computer':
             input()
-            move = choice(range(-(len(self.comp)), len(self.comp)))
-            self.make_move(move, self.comp)
-            self.active_player = 'human'
+            while True:
+                move = choice(range(-(len(self.comp)) + 1, len(self.comp)))
+                if self.is_legal(move, self.comp):
+                    self.make_move(move, self.comp)
+                    self.active_player = 'human'
+                    break
 
     def make_move(self, move, player):
         if move == 0:
             player.append(self.stock.pop())
         elif move > 0:
-            self.snake.append(player[move - 1])
+            if player[move - 1][0] == self.snake[-1][-1]:
+                self.snake.append(player[move - 1])
+            else:
+                self.snake.append(player[move - 1][::-1])
             del player[move - 1]
         elif move < 0:
-            self.snake.insert(0, player[abs(move) - 1])
+            if player[abs(move) - 1][1] == self.snake[0][0]:
+                self.snake.insert(0, player[abs(move) - 1])
+            else:
+                self.snake.insert(0, player[abs(move) - 1][::-1])
             del player[abs(move) - 1]
 
     def validate_move(self):
@@ -86,6 +100,14 @@ class Domino:
             except ValueError:
                 print('Invalid input. Please try again.')
 
+    def is_legal(self, move, player):
+        if move == 0:
+            return True
+        elif move < 0:
+            return self.snake[0][0] in player[abs(move) - 1]
+        else:
+            return self.snake[-1][-1] in player[move - 1]
+
     def end_game(self):
         if not self.human:
             print('Status: The game is over. You won!')
@@ -94,7 +116,7 @@ class Domino:
             print('Status: The game is over. The computer won!')
             return True
         elif len(self.snake) > 7 and self.snake[0][0] == self.snake[-1][-1]:
-            if list(chain.from_iterable(self.snake[0][0])).count(5) == 8:
+            if list(chain.from_iterable(self.snake)).count(self.snake[0][0]) == 8:
                 print("Status: The game is over. It's a draw!")
                 return True
         return False
