@@ -1,5 +1,6 @@
+import time
 from itertools import combinations_with_replacement, chain
-from random import shuffle, choice
+from random import shuffle
 
 
 class Domino:
@@ -34,9 +35,9 @@ class Domino:
             self.determine_first()
 
     @staticmethod
-    def max_double(_set):
+    def max_double(set_):
         try:
-            return max(el for el in _set if el[0] == el[1])
+            return max(el for el in set_ if el[0] == el[1])
         except ValueError:
             return []
 
@@ -66,13 +67,9 @@ class Domino:
                     print('Illegal move. Please try again.')
 
         elif self.active_player == 'computer':
-            input()
-            while True:
-                move = choice(range(-(len(self.comp)) + 1, len(self.comp)))
-                if self.is_legal(move, self.comp):
-                    self.make_move(move, self.comp)
-                    self.active_player = 'human'
-                    break
+            time.sleep(5)
+            self.make_move(self.make_decision(), self.comp)
+            self.active_player = 'human'
 
     def make_move(self, move, player):
         if move == 0:
@@ -120,6 +117,20 @@ class Domino:
                 print("Status: The game is over. It's a draw!")
                 return True
         return False
+
+    def make_decision(self):
+        values = list(chain.from_iterable(chain(self.snake, self.comp)))
+        count_values = {el: values.count(el) for el in values}
+        scores = {idx + 1: count_values[piece[0]] + count_values[piece[1]]
+                  for idx, piece in enumerate(self.comp)}
+        sorted_scores = {key: val for key, val
+                         in sorted(scores.items(), key=lambda item: item[1], reverse=True)}
+        for move in sorted_scores:
+            if self.is_legal(move, self.comp):
+                return move
+            elif self.is_legal(-move, self.comp):
+                return -move
+        return 0
 
 
 def main():
